@@ -2,52 +2,88 @@
 import 'package:flutter/material.dart';
 import '../../models/tarjeta_item.dart';
 
-
-// Un formulario necesita ser StatefulWidget para manejar el estado de los campos de texto
-// y poder reaccionar a los cambios del usuario.
 class FormScreen extends StatefulWidget {
   final String? tituloInicial;
   final String? descripcionInicial;
-  const FormScreen({super.key, this.tituloInicial, this.descripcionInicial});
+  final String? detalleInicial;
+  final String? imageUrlInicial;
+  const FormScreen({super.key, this.tituloInicial, this.descripcionInicial, this.detalleInicial, this.imageUrlInicial});
 
   @override
   State<FormScreen> createState() => _FormScreenState();
 }
-
-// La clase State almacena el estado mutable del widget
 class _FormScreenState extends State<FormScreen> {
-  // Controladores para leer y modificar el texto de los campos
   late final TextEditingController _tituloController;
   late final TextEditingController _descripcionController;
+  late final TextEditingController _detalleController;
+  late final TextEditingController _imageUrlController;
 
   @override
   void initState() {
     super.initState();
     _tituloController = TextEditingController(text: widget.tituloInicial ?? '');
     _descripcionController = TextEditingController(text: widget.descripcionInicial ?? '');
+    _detalleController = TextEditingController(text: widget.detalleInicial ?? '');
+    _imageUrlController = TextEditingController(text: widget.imageUrlInicial ?? '');
   }
 
   @override
   void dispose() {
-    // Es importante liberar los recursos de los controladores cuando el widget se destruye
     _tituloController.dispose();
     _descripcionController.dispose();
+    _detalleController.dispose();
+    _imageUrlController.dispose();
     super.dispose();
+  }
+
+  // Métodos privados para validación y guardado
+  bool _validateFields() {
+    final titulo = _tituloController.text.trim();
+    final descripcion = _descripcionController.text.trim();
+    final detalle = _detalleController.text.trim();
+    
+    if (titulo.isEmpty || descripcion.isEmpty || detalle.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Para guardar, completa título, descripción y detalle')),
+      );
+      return false;
+    }
+    return true;
+  }
+
+  TarjetaItem _createTarjetaItem() {
+    final titulo = _tituloController.text.trim();
+    final descripcion = _descripcionController.text.trim();
+    final detalle = _detalleController.text.trim();
+    final imageUrl = _imageUrlController.text.trim();
+    
+    return TarjetaItem(
+      titulo: titulo, 
+      descripcion: descripcion,
+      detalle: detalle,
+      imageUrl: imageUrl.isEmpty ? null : imageUrl,
+    );
+  }
+
+  void _saveAndReturn() {
+    if (!_validateFields()) return;
+    
+    final nuevoItem = _createTarjetaItem();
+    Navigator.pop(context, nuevoItem);
   }
 
   @override
   Widget build(BuildContext context) {
-    // El método build se llama cada vez que se actualiza el estado
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agregar/Editar Tarjeta'),
+        backgroundColor: Colors.blue.shade400,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Campo de texto para el título
             TextField(
               controller: _tituloController,
               decoration: const InputDecoration(
@@ -56,32 +92,39 @@ class _FormScreenState extends State<FormScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            // Campo de texto para la descripción
             TextField(
               controller: _descripcionController,
               decoration: const InputDecoration(
-                labelText: 'Ingrese descripción',
+                labelText: 'Descripción breve',
+                hintText: 'Resumen que aparecerá en la lista',
                 border: OutlineInputBorder(),
               ),
-              maxLines: 3,
+              maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _detalleController,
+              decoration: const InputDecoration(
+                labelText: 'Detalle completo',
+                hintText: 'Información detallada que aparecerá en la pantalla de detalles',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 5,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _imageUrlController,
+              decoration: const InputDecoration(
+                labelText: 'URL de imagen (opcional)',
+                hintText: 'https://ejemplo.com/imagen.jpg',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.image),
+              ),
+              keyboardType: TextInputType.url,
             ),
             const SizedBox(height: 24),
-            // Botón para guardar el formulario
             ElevatedButton.icon(
-              onPressed: () {
-                // Validar que los campos no estén vacíos
-                final titulo = _tituloController.text.trim();
-                final descripcion = _descripcionController.text.trim();
-                if (titulo.isEmpty || descripcion.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Completa todos los campos')),
-                  );
-                  return;
-                }
-                // Crear el nuevo elemento y devolverlo a la pantalla anterior
-                final nuevoItem = TarjetaItem(titulo: titulo, descripcion: descripcion);
-                Navigator.pop(context, nuevoItem);
-              },
+              onPressed: _saveAndReturn,
               icon: const Icon(Icons.save),
               label: const Text('Guardar'),
             ),
