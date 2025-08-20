@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
-import '../../models/tarjeta_item.dart';
+import '../../models/card_item.dart';
 import 'form_screen.dart';
 
 class DetailsScreen extends StatelessWidget {
 
   //Propiedades requeridas para el widget
-  final TarjetaItem item;
+  final CardItem card;
   final int index;
-  const DetailsScreen({super.key, required this.item, required this.index});
+  const DetailsScreen({super.key, required this.card, required this.index});
 
   // Metodos privados para manejar la navegación y acciones
   Future<void> _navigateToEditForm(BuildContext context) async {
-    final editedItem = await Navigator.push<TarjetaItem>(
+    final editedItem = await Navigator.push<CardItem>(
       context,
       MaterialPageRoute(
         builder: (context) => FormScreen(
-          tituloInicial: item.titulo,
-          descripcionInicial: item.descripcion,
-          detalleInicial: item.detalle,
-          imageUrlInicial: item.imageUrl,
+          tituloInicial: card.titulo,
+          descripcionInicial: card.descripcion,
+          detalleInicial: card.detalle,
+          imageUrlInicial: card.imageUrl,
         ),
       ),
     );
@@ -28,7 +28,7 @@ class DetailsScreen extends StatelessWidget {
     }
   }
 
-  void _returnEditResult(BuildContext context, TarjetaItem editedItem) {
+  void _returnEditResult(BuildContext context, CardItem editedItem) {
     Navigator.pop(context, {
       'accion': 'editar', 
       'item': editedItem, 
@@ -43,10 +43,39 @@ class DetailsScreen extends StatelessWidget {
     });
   }
 
+  //Metodo para construir la pantalla de detalles
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(card.titulo),
+        backgroundColor: Colors.blue.shade400,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            _buildImageSection(),
+            const SizedBox(height: 16),
+            _buildSectionTitle(context, 'Descripción:'),
+            const SizedBox(height: 8),
+            _buildSectionContent(context, card.descripcion),
+            const SizedBox(height: 8),
+            _buildSectionTitle(context, 'Detalle:'),
+            const SizedBox(height: 8),
+            _buildSectionContent(context, card.detalle),
+            const SizedBox(height: 16),
+            _buildActionButtons(context),
+          ],
+        ),
+      ),
+    );
+  }
 
   //Widgets:
   Widget _buildImageSection() {
-    if (item.imageUrl == null) return const SizedBox.shrink(); //Retorna un widget vacío si no hay URL de imagen
     return Column(
       children: [
         Center(
@@ -64,9 +93,9 @@ class DetailsScreen extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                item.imageUrl!,
-              ),
+              child: card.imageUrl != null ? Image.network(
+                card.imageUrl!
+              ) : Icon(Icons.image, color: Colors.white)
             ),
           ),
         ),
@@ -84,9 +113,9 @@ class DetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionContent(BuildContext context, String content) {
+  Widget _buildSectionContent(BuildContext context, String description) {
     return Text(
-      content,
+      description,
       style: Theme.of(context).textTheme.bodyLarge,
     );
   }
@@ -119,35 +148,4 @@ class DetailsScreen extends StatelessWidget {
     );
   }
 
-
-  //Metodo para construir la pantalla de detalles
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(item.titulo),
-        backgroundColor: Colors.blue.shade400,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            _buildImageSection(),
-            const SizedBox(height: 16),
-            _buildSectionTitle(context, 'Descripción:'),
-            const SizedBox(height: 8),
-            _buildSectionContent(context, item.descripcion),
-            const SizedBox(height: 8),
-            _buildSectionTitle(context, 'Detalle:'),
-            const SizedBox(height: 8),
-            _buildSectionContent(context, item.detalle),
-            const SizedBox(height: 16),
-            _buildActionButtons(context),
-          ],
-        ),
-      ),
-    );
-  }
 }

@@ -1,9 +1,10 @@
 
 import 'package:flutter/material.dart';
-
 import 'details_screen.dart';
 import 'form_screen.dart';
-import '../../models/tarjeta_item.dart';
+import '../../models/card_item.dart';
+import 'package:provider/provider.dart';
+import '../providers/card_provider.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -15,31 +16,18 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
 
-  //Lista inicial con 3 elementos
-  final List<TarjetaItem> listElements = List.generate(3,
-    (index) => TarjetaItem(
-      titulo: 'Tarjeta ${index + 1}',
-      descripcion: 'Esta es una breve descripcion de la tarjeta ${index + 1} que se mostrara en la pantalla principal, que sea menor de 100 caracteres para que no se corte.',
-      detalle: 'Aquí puedes encontrar información más específica sobre la tarjeta ${index + 1}. Este es el contenido que se mostrará en la pantalla de detalles cuando el usuario toque la tarjeta. Puedes incluir información técnica, características especiales, o cualquier otro dato relevante que consideres importante para el usuario.',
-      imageUrl: 'https://picsum.photos/200/200?random=${index + 1}',
-    ),
-  );
-
   // Navega a la pantalla de detalles
-  Future _navigateToDetails(TarjetaItem item, int index) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => DetailsScreen(item: item, index: index)),
-    );
-    
-    if (result != null && result is Map<String, dynamic>) {
+  Future _navigateToDetails(CardItem card, int index) async {
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => DetailsScreen(card: card, index: index)));
+    final isResultValid = result != null && result is Map<String, dynamic>;
+    if (isResultValid) {
       _handleDetailsResult(result);
     }
   }
 
   // Navega a la pantalla de formulario
   Future _navigateToForm() async {
-    final nuevoItem = await Navigator.push<TarjetaItem>(
+    final nuevoItem = await Navigator.push<CardItem>(
       context,
       MaterialPageRoute(builder: (context) => const FormScreen()),
     );
@@ -51,64 +39,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Maneja el resultado de la pantalla de detalles, (editar o elimina la tarjeta).
   void _handleDetailsResult(Map<String, dynamic> result) {
-    if (result['accion'] == 'editar' && result['item'] != null && result['index'] != null) {
-      setState(() {
-        listElements[result['index']] = result['item'];
-      });
+    final provider = Provider.of<CardProvider>(context, listen: false);
+    final isEditCard = result['accion'] == 'editar' && result['item'] != null && result['index'] != null;
+    if (isEditCard) {
+      provider.editCard(result['index'], result['item']);
     } else if (result['accion'] == 'eliminar' && result['index'] != null) {
-      setState(() {
-        listElements.removeAt(result['index']);
-      });
+      provider.removeCard(result['index']);
     }
   }
 
   // Maneja el resultado de la pantalla de formulario (agrega una nueva tarjeta).
-  void _addCard(TarjetaItem newCard) {
-    setState(() {
-      listElements.add(newCard);
-    });
+  void _addCard(CardItem newCard) {
+    final provider = Provider.of<CardProvider>(context, listen: false);
+    provider.addCard(newCard);
   }
 
-  // Widgets
-  Widget _buildCardTile(TarjetaItem item, int index) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 5,
-      color: Colors.blue.shade100,
-      child: ListTile(
-        title: Text(item.titulo, style: const TextStyle(fontWeight: FontWeight.bold)),
-        trailing: Icon(Icons.arrow_forward),
-        leading: _buildLeadingAvatar(item),
-        subtitle: _buildSubtitle(item),
-        onTap: () => _navigateToDetails(item, index),
-      ),
-    );
-  }
-
-  Widget _buildLeadingAvatar(TarjetaItem item) {
-    return item.imageUrl != null 
-      ? CircleAvatar(
-          backgroundImage: NetworkImage(item.imageUrl!),
-        )
-      : const CircleAvatar(
-          backgroundColor: Colors.lightBlue,
-          child: Icon(Icons.image, color: Colors.white),
-        );
-  }
-
-  Widget _buildSubtitle(TarjetaItem item) {
-    return Text(
-      item.descripcion.length > 100 
-        ? '${item.descripcion.substring(0, 100)}...'
-        : item.descripcion,
-      maxLines: 3,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
 
   //Metodo para construir la pantalla principal
   @override
   Widget build(BuildContext context) {
+    final cards = context.watch<CardProvider>().listElements;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Listado de Tarjetas'),
@@ -118,10 +68,10 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Padding(
         padding: const EdgeInsets.only(top: 6),
         child: ListView.builder(
-          itemCount: listElements.length,
+          itemCount: cards.length, //Total de elementos extraidos del provider
           itemBuilder: (BuildContext context, int index) {
-            final item = listElements[index];
-            return _buildCardTile(item, index);
+            final card = cards[index];
+            return _buildCardTile(card, index);
          }),
       ),
       floatingActionButton: FloatingActionButton(
@@ -131,4 +81,41 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+  // Widgets
+  Card _buildCardTile(CardItem card, int index) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 5,
+      color: Colors.blue.shade100,
+      child: ListTile(
+        title: Text(card.titulo, style: const TextStyle(fontWeight: FontWeight.bold)),
+        trailing: Icon(Icons.arrow_forward),
+        leading: _buildLeadingAvatar(card),
+        subtitle: _buildSubtitle(card), 
+        onTap: () => _navigateToDetails(card, index),
+      ),
+    );
+  }
+
+  Widget _buildLeadingAvatar(CardItem card) {
+    return card.imageUrl != null 
+      ? CircleAvatar(
+          backgroundImage: NetworkImage(card.imageUrl!),
+        )
+      : const CircleAvatar(
+          backgroundColor: Colors.lightBlue,
+          child: Icon(Icons.image, color: Colors.white),
+        );
+  }
+
+  Widget _buildSubtitle(CardItem card) {
+    return Text(
+      card.descripcion.length > 100 
+        ? '${card.descripcion.substring(0, 100)}...'
+        : card.descripcion,
+      maxLines: 3,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
 }

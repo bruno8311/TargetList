@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import '../../models/tarjeta_item.dart';
+import '../../models/card_item.dart';
 
 class FormScreen extends StatefulWidget {
   final String? tituloInicial;
@@ -51,13 +51,13 @@ class _FormScreenState extends State<FormScreen> {
     return true;
   }
 
-  TarjetaItem _createTarjetaItem() {
+  CardItem _createCardItem() {
     final titulo = _tituloController.text.trim();
     final descripcion = _descripcionController.text.trim();
     final detalle = _detalleController.text.trim();
     final imageUrl = _imageUrlController.text.trim();
     
-    return TarjetaItem(
+    return CardItem(
       titulo: titulo, 
       descripcion: descripcion,
       detalle: detalle,
@@ -68,7 +68,7 @@ class _FormScreenState extends State<FormScreen> {
   void _saveAndReturn() {
     if (!_validateFields()) return;
     
-    final nuevoItem = _createTarjetaItem();
+    final nuevoItem = _createCardItem();
     Navigator.pop(context, nuevoItem);
   }
 
@@ -79,7 +79,7 @@ class _FormScreenState extends State<FormScreen> {
         title: const Text('Agregar/Editar Tarjeta'),
         backgroundColor: Colors.blue.shade400,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -127,6 +127,9 @@ class _FormScreenState extends State<FormScreen> {
               onPressed: _saveAndReturn,
               icon: const Icon(Icons.save),
               label: const Text('Guardar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade100,
+              ),
             ),
           ],
         ),
