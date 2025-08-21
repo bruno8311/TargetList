@@ -92,6 +92,12 @@ lib/
 - **TextEditingController.dispose()**: Liberación de recursos en FormScreen
 - **late final**: Inicialización tardía pero inmutable de controladores
 
+## 🛠️ Tecnologías y patrones implementados
+
+- **Gestores de estado:** Provider
+- **Arquitectura limpia:** Separación en capas (domain, data, presentation)
+- **Persistencia de datos:** SharedPreferences
+
 ## 🚀 Instalación y Ejecución
 
 ### Prerrequisitos
