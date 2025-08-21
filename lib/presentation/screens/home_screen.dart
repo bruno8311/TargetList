@@ -1,11 +1,10 @@
-
-import 'package:flutter/material.dart';
-import 'details_screen.dart';
-import 'form_screen.dart';
-import '../../models/card_item.dart';
-import 'package:provider/provider.dart';
-import '../providers/card_provider.dart';
-
+  import 'package:flutter/material.dart';
+  import 'details_screen.dart';
+  import 'form_screen.dart';
+  import '../../domain/entities/card_item.dart';
+  import 'package:provider/provider.dart';
+  import '../providers/card_provider.dart';
+  import '../widgets/card_tile.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,47 +14,52 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider = Provider.of<CardProvider>(context, listen: false);
+      await provider.loadCards(); // Carga inicial de tarjetas
+    });
+  }
 
-  // Navega a la pantalla de detalles
   Future _navigateToDetails(CardItem card, int index) async {
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => DetailsScreen(card: card, index: index)));
-    final isResultValid = result != null && result is Map<String, dynamic>;
+    final result = await Navigator.push(context,
+      MaterialPageRoute(
+        builder: (context) => DetailsScreen(card: card, index: index)
+      ));
+    final isResultValid = result != null;
     if (isResultValid) {
       _handleDetailsResult(result);
     }
   }
 
-  // Navega a la pantalla de formulario
   Future _navigateToForm() async {
-    final nuevoItem = await Navigator.push<CardItem>(
-      context,
-      MaterialPageRoute(builder: (context) => const FormScreen()),
-    );
-    
-    if (nuevoItem != null) {
+    final nuevoItem = await Navigator.push<CardItem>(context,
+      MaterialPageRoute(
+        builder: (context) => const FormScreen()
+      ));
+    final isItemValid = nuevoItem != null;
+    if (isItemValid) {
       _addCard(nuevoItem);
     }
   }
 
-  // Maneja el resultado de la pantalla de detalles, (editar o elimina la tarjeta).
   void _handleDetailsResult(Map<String, dynamic> result) {
     final provider = Provider.of<CardProvider>(context, listen: false);
-    final isEditCard = result['accion'] == 'editar' && result['item'] != null && result['index'] != null;
+    final isEditCard = result['accion'] == 'editar';
     if (isEditCard) {
       provider.editCard(result['index'], result['item']);
-    } else if (result['accion'] == 'eliminar' && result['index'] != null) {
+    } else if (result['accion'] == 'eliminar') {
       provider.removeCard(result['index']);
     }
   }
 
-  // Maneja el resultado de la pantalla de formulario (agrega una nueva tarjeta).
   void _addCard(CardItem newCard) {
     final provider = Provider.of<CardProvider>(context, listen: false);
     provider.addCard(newCard);
   }
 
-
-  //Metodo para construir la pantalla principal
   @override
   Widget build(BuildContext context) {
     final cards = context.watch<CardProvider>().listElements;
@@ -68,11 +72,16 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Padding(
         padding: const EdgeInsets.only(top: 6),
         child: ListView.builder(
-          itemCount: cards.length, //Total de elementos extraidos del provider
-          itemBuilder: (BuildContext context, int index) {
+          itemCount: cards.length,
+          itemBuilder: (context, int index) {
             final card = cards[index];
-            return _buildCardTile(card, index);
-         }),
+            return CardTile(
+              card: card,
+              index: index,
+              onTap: () => _navigateToDetails(card, index),
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToForm,
@@ -81,41 +90,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  // Widgets
-  Card _buildCardTile(CardItem card, int index) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 5,
-      color: Colors.blue.shade100,
-      child: ListTile(
-        title: Text(card.titulo, style: const TextStyle(fontWeight: FontWeight.bold)),
-        trailing: Icon(Icons.arrow_forward),
-        leading: _buildLeadingAvatar(card),
-        subtitle: _buildSubtitle(card), 
-        onTap: () => _navigateToDetails(card, index),
-      ),
-    );
-  }
-
-  Widget _buildLeadingAvatar(CardItem card) {
-    return card.imageUrl != null 
-      ? CircleAvatar(
-          backgroundImage: NetworkImage(card.imageUrl!),
-        )
-      : const CircleAvatar(
-          backgroundColor: Colors.lightBlue,
-          child: Icon(Icons.image, color: Colors.white),
-        );
-  }
-
-  Widget _buildSubtitle(CardItem card) {
-    return Text(
-      card.descripcion.length > 100 
-        ? '${card.descripcion.substring(0, 100)}...'
-        : card.descripcion,
-      maxLines: 3,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-
 }

@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => CardProvider()),
+        ChangeNotifierProvider(create: (_) => CardProvider()), //Gestor de estado
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -26,4 +26,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

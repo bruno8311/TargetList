@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../models/card_item.dart';
+import '../../domain/entities/card_item.dart';
 import 'form_screen.dart';
+import '../widgets/action_buttons_widget.dart';
+import '../widgets/image_section_widget.dart';
 
 class DetailsScreen extends StatelessWidget {
 
@@ -15,10 +17,10 @@ class DetailsScreen extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => FormScreen(
-          tituloInicial: card.titulo,
-          descripcionInicial: card.descripcion,
-          detalleInicial: card.detalle,
-          imageUrlInicial: card.imageUrl,
+          initialTitle: card.title,
+          initialDescription: card.description,
+          initialDetail: card.detail,
+          initialImageUrl: card.imageUrl,
         ),
       ),
     );
@@ -48,7 +50,7 @@ class DetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(card.titulo),
+        title: Text(card.title),
         backgroundColor: Colors.blue.shade400,
       ),
       body: Padding(
@@ -57,17 +59,20 @@ class DetailsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            _buildImageSection(),
+            ImageSectionWidget(imageUrl: card.imageUrl),
             const SizedBox(height: 16),
             _buildSectionTitle(context, 'Descripción:'),
             const SizedBox(height: 8),
-            _buildSectionContent(context, card.descripcion),
+            _buildSectionContent(context, card.description),
             const SizedBox(height: 8),
             _buildSectionTitle(context, 'Detalle:'),
             const SizedBox(height: 8),
-            _buildSectionContent(context, card.detalle),
+            _buildSectionContent(context, card.detail),
             const SizedBox(height: 16),
-            _buildActionButtons(context),
+            ActionButtonsWidget(
+              onEdit: () => _navigateToEditForm(context),
+              onDelete: () => _returnDeleteResult(context),
+            ),
           ],
         ),
       ),
@@ -75,34 +80,7 @@ class DetailsScreen extends StatelessWidget {
   }
 
   //Widgets:
-  Widget _buildImageSection() {
-    return Column(
-      children: [
-        Center(
-          child: Container(
-            width: 150,
-            height: 150,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: card.imageUrl != null ? Image.network(
-                card.imageUrl!
-              ) : Icon(Icons.image, color: Colors.white)
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
+  // ...existing code...
 
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
@@ -119,33 +97,4 @@ class DetailsScreen extends StatelessWidget {
       style: Theme.of(context).textTheme.bodyLarge,
     );
   }
-
-  Widget _buildActionButtons(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () => _navigateToEditForm(context),
-            icon: const Icon(Icons.edit),
-            label: const Text('Editar'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade100,
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () => _returnDeleteResult(context),
-            icon: const Icon(Icons.delete),
-            label: const Text('Eliminar'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
 }
