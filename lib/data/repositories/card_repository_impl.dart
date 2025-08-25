@@ -12,15 +12,15 @@ class CardRepositoryImpl implements CardRepository {
   }
 
   @override
-  Future<void> addCard(CardItem card) async {
-    final cards = await getCards();
+  Future<void> addCard(CardItem card) async { //Se llamo aqui
+    final cards = await getCards(); //Llama los cards existentes
     cards.add(CardItemModel(
       title: card.title,
       description: card.description,
       detail: card.detail,
       imageUrl: card.imageUrl,
-    ));
-    await _datasource.saveCards(cards);
+    )); //Añade el elemento
+    await _datasource.saveCards(cards); //guarda
   }
 
   @override

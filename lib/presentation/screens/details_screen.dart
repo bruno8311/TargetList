@@ -3,6 +3,8 @@ import '../../domain/entities/card_item.dart';
 import 'form_screen.dart';
 import '../widgets/action_buttons_widget.dart';
 import '../widgets/image_section_widget.dart';
+import 'package:provider/provider.dart';
+import '../providers/card_provider.dart';
 
 class DetailsScreen extends StatelessWidget {
 
@@ -13,7 +15,7 @@ class DetailsScreen extends StatelessWidget {
 
   // Metodos privados para manejar la navegación y acciones
   Future<void> _navigateToEditForm(BuildContext context) async {
-    final editedItem = await Navigator.push<CardItem>(
+    await Navigator.push<CardItem>(
       context,
       MaterialPageRoute(
         builder: (context) => FormScreen(
@@ -21,28 +23,16 @@ class DetailsScreen extends StatelessWidget {
           initialDescription: card.description,
           initialDetail: card.detail,
           initialImageUrl: card.imageUrl,
+          index: index,
         ),
       ),
     );
-    
-    if (editedItem != null && context.mounted) {
-      _returnEditResult(context, editedItem);
-    }
-  }
-
-  void _returnEditResult(BuildContext context, CardItem editedItem) {
-    Navigator.pop(context, {
-      'accion': 'editar', 
-      'item': editedItem, 
-      'index': index
-    });
   }
 
   void _returnDeleteResult(BuildContext context) {
-    Navigator.pop(context, {
-      'accion': 'eliminar', 
-      'index': index
-    });
+      final provider = Provider.of<CardProvider>(context, listen: false);
+      provider.removeCard(index); //Elimina tarjeta
+      Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   //Metodo para construir la pantalla de detalles

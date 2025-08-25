@@ -1,13 +1,23 @@
 
 import 'package:flutter/material.dart';
 import '../../domain/entities/card_item.dart';
+import 'package:provider/provider.dart';
+import '../providers/card_provider.dart';
 
 class FormScreen extends StatefulWidget {
   final String? initialTitle;
   final String? initialDescription;
   final String? initialDetail;
   final String? initialImageUrl;
-  const FormScreen({super.key, this.initialTitle, this.initialDescription, this.initialDetail, this.initialImageUrl});
+  final int? index;
+  const FormScreen({
+    super.key,
+    this.initialTitle,
+    this.initialDescription,
+    this.initialDetail,
+    this.initialImageUrl,
+    this.index,
+  });
 
   @override
   State<FormScreen> createState() => _FormScreenState();
@@ -44,7 +54,7 @@ class _FormScreenState extends State<FormScreen> {
     
     if (title.isEmpty || description.isEmpty || detail.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('To save, complete title, description and detail')),
+        const SnackBar(content: Text('Para guardar, completa el título, la descripción y el detalle.')),
       );
       return false;
     }
@@ -65,17 +75,23 @@ class _FormScreenState extends State<FormScreen> {
     );
   }
 
-  void _saveAndReturn() {
+  void _handleSubmit({required bool isEdit}) {
     if (!_validateFields()) return;
     final nuevoItem = _createCardItem();
-    Navigator.pop(context, nuevoItem);
+    final provider = Provider.of<CardProvider>(context, listen: false);
+    if (isEdit) {
+      provider.editCard(widget.index!, nuevoItem);
+    } else {
+      provider.addCard(nuevoItem);
+    }
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agregar/Editar Tarjeta'),
+        title: const Text('Crear/Editar Tarjeta'),
         backgroundColor: Colors.blue.shade400,
       ),
       body: SingleChildScrollView(
@@ -83,51 +99,20 @@ class _FormScreenState extends State<FormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Título',
-                border: OutlineInputBorder(),
-              ),
-            ),
+            _buildTextField(_titleController, 'Título'),
             const SizedBox(height: 16),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Descripción breve',
-                hintText: 'Resumen que aparecerá en la lista',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
+            _buildTextField(_descriptionController, 'Descripción breve', hint: 'Resumen que aparecerá en la lista', maxLines: 2),
             const SizedBox(height: 16),
-            TextField(
-              controller: _detailController,
-              decoration: const InputDecoration(
-                labelText: 'Detalle completo',
-                hintText: 'Información detallada que aparecerá en la pantalla de detalle',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 5,
-            ),
+            _buildTextField(_detailController, 'Detalle completo', hint: 'Información detallada que aparecerá en la pantalla de detalle', maxLines: 5),
             const SizedBox(height: 16),
-            TextField(
-              controller: _imageUrlController,
-              decoration: const InputDecoration(
-                labelText: 'URL de imagen (opcional)',
-                hintText: 'https://ejemplo.com/imagen.jpg',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.image),
-              ),
-              keyboardType: TextInputType.url,
-            ),
+            _buildTextField(_imageUrlController, 'URL de imagen (opcional)', hint: 'https://ejemplo.com/imagen.jpg', icon: Icons.image),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: _saveAndReturn,
-              icon: const Icon(Icons.save),
-              label: const Text('Guardar'),
+              onPressed: () => _handleSubmit(isEdit: widget.index != null),
+              icon: widget.index != null ? const Icon(Icons.save) : const Icon(Icons.add),
+              label: widget.index != null ? const Text('Guardar cambios') : const Text('Crear nueva tarjeta'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade100,
+                backgroundColor: widget.index != null ? Colors.blue.shade100 : Colors.green.shade100,
               ),
             ),
           ],
@@ -135,4 +120,18 @@ class _FormScreenState extends State<FormScreen> {
       ),
     );
   }
+
+  Widget _buildTextField(TextEditingController controller, String label, {String? hint, int maxLines = 1, IconData? icon}) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        border: const OutlineInputBorder(),
+        prefixIcon: icon != null ? Icon(icon) : null,
+      ),
+      maxLines: maxLines,
+      keyboardType: icon == Icons.image ? TextInputType.url : TextInputType.text,
+    );
+  } 
 }

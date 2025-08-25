@@ -19,45 +19,26 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = Provider.of<CardProvider>(context, listen: false);
-      await provider.loadCards(); // Carga inicial de tarjetas
+      await provider.loadCards();
     });
   }
 
   Future _navigateToDetails(CardItem card, int index) async {
-    final result = await Navigator.push(context,
+    await Navigator.push(
+      context,
       MaterialPageRoute(
         builder: (context) => DetailsScreen(card: card, index: index)
-      ));
-    final isResultValid = result != null;
-    if (isResultValid) {
-      _handleDetailsResult(result);
-    }
+      ),
+    );
   }
 
   Future _navigateToForm() async {
-    final nuevoItem = await Navigator.push<CardItem>(context,
+    await Navigator.push(
+      context,
       MaterialPageRoute(
         builder: (context) => const FormScreen()
-      ));
-    final isItemValid = nuevoItem != null;
-    if (isItemValid) {
-      _addCard(nuevoItem);
-    }
-  }
-
-  void _handleDetailsResult(Map<String, dynamic> result) {
-    final provider = Provider.of<CardProvider>(context, listen: false);
-    final isEditCard = result['accion'] == 'editar';
-    if (isEditCard) {
-      provider.editCard(result['index'], result['item']);
-    } else if (result['accion'] == 'eliminar') {
-      provider.removeCard(result['index']);
-    }
-  }
-
-  void _addCard(CardItem newCard) {
-    final provider = Provider.of<CardProvider>(context, listen: false);
-    provider.addCard(newCard);
+      ),
+    );
   }
 
   @override

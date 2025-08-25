@@ -21,7 +21,7 @@ class CardProvider extends ChangeNotifier {
 	  	removeCardUseCase = RemoveCard(CardRepositoryImpl());
 
 	Future<void> addCard(CardItem newCard) async {
-		await addCardUseCase.call(newCard);
+		await addCardUseCase.call(newCard); //caso de uso para añadir elemento de tipo CardItem
 		await loadCards();
 		notifyListeners();
 	}
