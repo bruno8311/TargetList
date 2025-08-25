@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future _navigateToDetails(CardItem card, int index) async {
+  Future _navigateToDetails(BuildContext context, CardItem card, int index) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future _navigateToForm() async {
+  Future _navigateToForm(BuildContext context) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -59,13 +59,13 @@ class _HomeScreenState extends State<HomeScreen> {
             return CardTile(
               card: card,
               index: index,
-              onTap: () => _navigateToDetails(card, index),
+              onTap: () => _navigateToDetails(context, card, index),
             );
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToForm,
+        onPressed: () => _navigateToForm(context),
         tooltip: 'Agregar nueva tarjeta',
         child: const Icon(Icons.add),
       ),
